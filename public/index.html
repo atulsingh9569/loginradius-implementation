@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Flow</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+            background-color: #ffffff; /* Light Mode */
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            width: 360px;
+            padding: 25px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0px 6px 18px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        input {
+            width: 340px;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #007bff, #00d4ff);
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .message {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Welcome Page -->
+    <div class="container" id="firstTimeUserPage">
+        <h2>Welcome!</h2>
+        <p>Are you a new user?</p>
+        <button onclick="showPage('registerPage')">Yes, Register</button>
+        <button onclick="showPage('loginPage')">No, Log In</button>
+    </div>
+
+    <!-- Registration Page -->
+    <div class="container" id="registerPage">
+        <h2>Register</h2>
+        <form id="registerForm">
+            <input type="text" id="firstName" placeholder="First Name" required>
+            <input type="text" id="lastName" placeholder="Last Name" required>
+            <input type="text" id="userName" placeholder="Username" required>
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button type="submit">Register</button>
+            <div id="registerMessage" class="message"></div>
+        </form>
+    </div>
+
+    <!-- Email Verification Page -->
+    <div class="container" id="verifyPage">
+        <h2>Verify Email</h2>
+        <p>Check your email and enter the verification token:</p>
+        <form id="verifyForm">
+            <input type="text" id="verificationToken" placeholder="Verification Token" required>
+            <button type="submit">Verify</button>
+            <div id="verifyMessage" class="message"></div>
+        </form>
+    </div>
+
+    <!-- Login Page -->
+    <div class="container" id="loginPage">
+        <h2>Login</h2>
+        <form id="loginForm">
+            <input type="text" id="loginIdentifier" placeholder="Email or Username" required>
+            <input type="password" id="loginPassword" placeholder="Password" required>
+            <button type="submit">Login</button>
+            <div id="loginMessage" class="message"></div>
+        </form>
+    </div>
+
+    <!-- Profile Page (After Login) -->
+    <div class="container" id="profilePage">
+        <h2>Welcome, <span id="userNameDisplay"></span>!</h2>
+        <p>Your Email: <span id="userEmailDisplay"></span></p>
+        <button onclick="logout()">Logout</button>
+
+        <!-- Delete Account Form -->
+        <h3>Delete Account</h3>
+        <form id="deleteForm">
+            <input type="password" id="deletePassword" placeholder="Enter Password" required>
+            <button type="submit">Delete Account</button>
+            <div id="deleteMessage" class="message"></div>
+        </form>
+    </div>
+
+    <script>
+        function showPage(pageId) {
+            document.querySelectorAll('.container').forEach(container => {
+                container.style.display = "none";
+            });
+            document.getElementById(pageId).style.display = "block";
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            showPage("firstTimeUserPage");
+        });
+
+        function showMessage(element, message, isSuccess) {
+            element.textContent = message;
+            element.className = `message ${isSuccess ? 'success' : 'error'}`;
+            element.style.display = "block";
+        }
+
+        // Handle Delete Account
+        document.getElementById("deleteForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+            const response = await fetch("/delete", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    password: document.getElementById("deletePassword").value
+                })
+            });
+
+            const data = await response.json();
+            showMessage(document.getElementById("deleteMessage"), response.ok ? "Account Deleted" : "Deletion Failed", response.ok);
+            if (response.ok) {
+                setTimeout(() => {
+                    logout();
+                    showPage("firstTimeUserPage");
+                }, 2000);
+            }
+        });
+
+        function logout() {
+            localStorage.removeItem("access_token");
+            showPage("loginPage");
+        }
+    </script>
+
+</body>
+</html>

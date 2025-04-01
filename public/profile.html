@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+            background-color: #f8f9fa;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            width: 360px;
+            padding: 25px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0px 6px 18px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #007bff, #00d4ff);
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Welcome, <span id="userNameDisplay"></span>!</h2>
+        <p>Your Email: <span id="userEmailDisplay"></span></p>
+        <button onclick="logout()">Logout</button>
+    </div>
+
+    <script>
+        function loadProfile() {
+            const userName = localStorage.getItem("userName");
+            const userEmail = localStorage.getItem("userEmail");
+
+            if (!userName || !userEmail || userEmail === "No Email") { // Check for valid email
+                alert("Session expired or invalid data. Please log in again.");
+                window.location.href = "/"; // Redirect to login if no user data
+            } else {
+                document.getElementById("userNameDisplay").textContent = userName;
+                document.getElementById("userEmailDisplay").textContent = userEmail;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("userName");
+            localStorage.removeItem("userEmail");
+            window.location.href = "/"; // Redirect to home
+        }
+
+        document.addEventListener("DOMContentLoaded", loadProfile);
+    </script>
+
+</body>
+</html>
