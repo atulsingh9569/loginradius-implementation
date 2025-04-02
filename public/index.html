@@ -8,7 +8,7 @@
         body {
             font-family: 'Poppins', sans-serif;
             text-align: center;
-            background-color: #ffffff; /* Light Mode */
+            background-color: #ffffff;
             color: #333;
             display: flex;
             justify-content: center;
@@ -16,7 +16,6 @@
             height: 100vh;
             margin: 0;
         }
-
         .container {
             width: 360px;
             padding: 25px;
@@ -25,7 +24,6 @@
             box-shadow: 0px 6px 18px rgba(0, 0, 0, 0.1);
             display: none;
         }
-
         input {
             width: 340px;
             padding: 12px;
@@ -34,7 +32,6 @@
             border-radius: 6px;
             font-size: 14px;
         }
-
         button {
             width: 100%;
             padding: 12px;
@@ -47,11 +44,9 @@
             cursor: pointer;
             transition: 0.3s;
         }
-
         button:hover {
             opacity: 0.9;
         }
-
         .message {
             margin-top: 15px;
             padding: 12px;
@@ -59,29 +54,18 @@
             font-size: 14px;
             display: none;
         }
-
-        .success {
-            background-color: #d4edda;
-            color: #155724;
-        }
-
-        .error {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
-
-    <!-- Welcome Page -->
     <div class="container" id="firstTimeUserPage">
         <h2>Welcome!</h2>
         <p>Are you a new user?</p>
         <button onclick="showPage('registerPage')">Yes, Register</button>
         <button onclick="showPage('loginPage')">No, Log In</button>
     </div>
-
-    <!-- Registration Page -->
+    
     <div class="container" id="registerPage">
         <h2>Register</h2>
         <form id="registerForm">
@@ -94,8 +78,7 @@
             <div id="registerMessage" class="message"></div>
         </form>
     </div>
-
-    <!-- Email Verification Page -->
+    
     <div class="container" id="verifyPage">
         <h2>Verify Email</h2>
         <p>Check your email and enter the verification token:</p>
@@ -105,8 +88,7 @@
             <div id="verifyMessage" class="message"></div>
         </form>
     </div>
-
-    <!-- Login Page -->
+    
     <div class="container" id="loginPage">
         <h2>Login</h2>
         <form id="loginForm">
@@ -116,22 +98,13 @@
             <div id="loginMessage" class="message"></div>
         </form>
     </div>
-
-    <!-- Profile Page (After Login) -->
+    
     <div class="container" id="profilePage">
         <h2>Welcome, <span id="userNameDisplay"></span>!</h2>
         <p>Your Email: <span id="userEmailDisplay"></span></p>
         <button onclick="logout()">Logout</button>
-
-        <!-- Delete Account Form -->
-        <h3>Delete Account</h3>
-        <form id="deleteForm">
-            <input type="password" id="deletePassword" placeholder="Enter Password" required>
-            <button type="submit">Delete Account</button>
-            <div id="deleteMessage" class="message"></div>
-        </form>
     </div>
-
+    
     <script>
         function showPage(pageId) {
             document.querySelectorAll('.container').forEach(container => {
@@ -139,43 +112,118 @@
             });
             document.getElementById(pageId).style.display = "block";
         }
-
+    
         document.addEventListener("DOMContentLoaded", function () {
             showPage("firstTimeUserPage");
         });
-
+    
         function showMessage(element, message, isSuccess) {
             element.textContent = message;
             element.className = `message ${isSuccess ? 'success' : 'error'}`;
             element.style.display = "block";
         }
-
-        // Handle Delete Account
-        document.getElementById("deleteForm").addEventListener("submit", async function (event) {
+    
+        async function handleFormSubmit(event, url, formData, messageElement, successPage) {
             event.preventDefault();
-            const response = await fetch("/delete", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    password: document.getElementById("deletePassword").value
-                })
-            });
+            try {
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(formData)
+                });
+    
+                const data = await response.json();
+                if (response.ok) {
+                    showMessage(messageElement, "Success!", true);
+                    if (successPage) setTimeout(() => showPage(successPage), 2000);
+                } else {
+                    showMessage(messageElement, data.error || "Failed!", false);
+                }
+            } catch (error) {
+                console.error("Error during form submission:", error);
+                showMessage(messageElement, "An unexpected error occurred.", false);
+            }
+        }
+    
+        document.getElementById("registerForm").addEventListener("submit", function (event) {
+            handleFormSubmit(event, "/register", {
+                firstName: document.getElementById("firstName").value,
+                lastName: document.getElementById("lastName").value,
+                userName: document.getElementById("userName").value,
+                email: document.getElementById("email").value,
+                password: document.getElementById("password").value
+            }, document.getElementById("registerMessage"), "verifyPage");
+        });
+    
+        document.getElementById("verifyForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+            const verificationToken = document.getElementById("verificationToken").value;
 
-            const data = await response.json();
-            showMessage(document.getElementById("deleteMessage"), response.ok ? "Account Deleted" : "Deletion Failed", response.ok);
-            if (response.ok) {
-                setTimeout(() => {
-                    logout();
-                    showPage("firstTimeUserPage");
-                }, 2000);
+            try {
+                const response = await fetch(`/verify?verificationtoken=${encodeURIComponent(verificationToken)}`, {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" }
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    showMessage(document.getElementById("verifyMessage"), "Verification Successful!", true);
+                    setTimeout(() => showPage("loginPage"), 2000); // Redirect to login page after success
+                } else {
+                    showMessage(document.getElementById("verifyMessage"), data.error || "Verification Failed!", false);
+                }
+            } catch (error) {
+                console.error("Verification Error:", error);
+                showMessage(document.getElementById("verifyMessage"), "An unexpected error occurred.", false);
             }
         });
+    
+        document.getElementById("loginForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+            try {
+                const response = await fetch("/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        email: document.getElementById("loginIdentifier").value,
+                        password: document.getElementById("loginPassword").value
+                    })
+                });
+    
+                const data = await response.json();
+                if (response.ok) {
+                    localStorage.setItem("userName", data.data.Profile.UserName || "User");
+                    localStorage.setItem("userEmail", (data.data.Profile.Email && data.data.Profile.Email.length > 0)
+                        ? data.data.Profile.Email[0].Value
+                        : "No Email"); // Correctly extract and store the email
 
+                    // Show login success message
+                    showMessage(document.getElementById("loginMessage"), "Login Successful!", true);
+
+                    // Redirect to profile page after 2 seconds
+                    setTimeout(() => {
+                        showProfile();
+                    }, 2000);
+                } else {
+                    showMessage(document.getElementById("loginMessage"), data.error || "Login Failed!", false);
+                }
+            } catch (error) {
+                console.error("Login Error:", error);
+                showMessage(document.getElementById("loginMessage"), "An unexpected error occurred.", false);
+            }
+        });
+    
+        function showProfile() {
+            document.getElementById("userNameDisplay").textContent = localStorage.getItem("userName");
+            document.getElementById("userEmailDisplay").textContent = localStorage.getItem("userEmail");
+            showPage("profilePage");
+        }
+    
         function logout() {
-            localStorage.removeItem("access_token");
+            localStorage.clear();
             showPage("loginPage");
         }
     </script>
-
+    
 </body>
 </html>
