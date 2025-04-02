@@ -221,6 +221,15 @@
     
         function logout() {
             localStorage.clear();
+            document.getElementById("loginIdentifier").value = "";
+            document.getElementById("loginPassword").value = "";
+
+            // Hide any messages
+            const loginMessage = document.getElementById("loginMessage");
+            if (loginMessage) {
+                loginMessage.textContent = "";
+                loginMessage.style.display = "none";
+            }
             showPage("loginPage");
         }
     </script>
