@@ -168,7 +168,7 @@
                 const data = await response.json();
                 if (response.ok) {
                     showMessage(document.getElementById("verifyMessage"), "Verification Successful!", true);
-                    setTimeout(() => showPage("loginPage"), 2000); // Redirect to login page after success
+                    setTimeout(() => showPage("loginPage"), 2000);
                 } else {
                     showMessage(document.getElementById("verifyMessage"), data.error || "Verification Failed!", false);
                 }
@@ -195,12 +195,10 @@
                     localStorage.setItem("userName", data.data.Profile.UserName || "User");
                     localStorage.setItem("userEmail", (data.data.Profile.Email && data.data.Profile.Email.length > 0)
                         ? data.data.Profile.Email[0].Value
-                        : "No Email"); // Correctly extract and store the email
+                        : "No Email");
 
-                    // Show login success message
                     showMessage(document.getElementById("loginMessage"), "Login Successful!", true);
 
-                    // Redirect to profile page after 2 seconds
                     setTimeout(() => {
                         showProfile();
                     }, 2000);
@@ -224,7 +222,6 @@
             document.getElementById("loginIdentifier").value = "";
             document.getElementById("loginPassword").value = "";
 
-            // Hide any messages
             const loginMessage = document.getElementById("loginMessage");
             if (loginMessage) {
                 loginMessage.textContent = "";
